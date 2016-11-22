@@ -11,6 +11,11 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
+#include <sys/mman.h>
+
+int sockfd, newsockfd, portno;
+static int *globalNumClients;
 
 void error(const char *msg)
 {
@@ -18,15 +23,26 @@ void error(const char *msg)
 	exit(1);
 }
 
+void interrupt_handler(int sig)
+{
+    close(sockfd);
+    munmap(globalNumClients, sizeof(int));
+    exit(0);
+}
+
 int main(int argc, char *argv[])
 {
-	int sockfd, newsockfd, portno;
 	socklen_t clilen;
 	char buffer[256];
 	struct sockaddr_in serv_addr, cli_addr;
 	int n;
 	int pid;
 	static int numClients = 0;
+
+    globalNumClients = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE,
+                                MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+    signal(SIGINT, interrupt_handler);
 
 	if (argc < 2) 
 	{
@@ -64,6 +80,8 @@ int main(int argc, char *argv[])
 
 	clilen = sizeof(cli_addr);
 
+    *globalNumClients = 0;
+
 	// main infinite-loop
 	// Receive new fd using accept, then fork
 	while (1)
@@ -83,7 +101,8 @@ int main(int argc, char *argv[])
 		{
 			close(newsockfd);
 			numClients++;
-			printf("%d clients have connected\n", numClients);
+            *globalNumClients = *globalNumClients + 1;
+			printf("%d clients have connected\n", *globalNumClients);
 			continue;
 		}
 
@@ -92,11 +111,11 @@ int main(int argc, char *argv[])
 		{
 			while (1)
 			{
-				numClients++;
 				if (newsockfd < 0) 
 				{
+                    *globalNumClients = *globalNumClients - 1;
 					printf("ERROR on accept\n");
-					numClients--;
+                    printf("A client disconnected. There are %d client(s) connected\n", *globalNumClients);
 					return 1;
 				}
 
@@ -104,10 +123,11 @@ int main(int argc, char *argv[])
 
 				n = read(newsockfd,buffer,255);
 
-				if (n < 0)
+				if (n <= 0)
 				{
+                    *globalNumClients = *globalNumClients - 1;
 					printf("ERROR reading from socket\n");
-					numClients--;
+                    printf("A client disconnected. There are %d client(s) connected\n", *globalNumClients);
 					return 1;
 				}
 
@@ -117,8 +137,9 @@ int main(int argc, char *argv[])
 
 				if (n < 0)
 				{
+                    *globalNumClients = *globalNumClients - 1;
 					printf("ERROR writing to socket\n");
-					numClients--;
+                    printf("A client disconnected. There are %d client(s) connected\n", *globalNumClients);
 					return 1;
 				}
 			}
@@ -127,6 +148,7 @@ int main(int argc, char *argv[])
 
 	close(newsockfd);
 	close(sockfd);
+    munmap(globalNumClients, sizeof(int));
 
 	return 0; 
 }

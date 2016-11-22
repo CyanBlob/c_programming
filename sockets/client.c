@@ -6,6 +6,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <signal.h>
+
+int sockfd, portno, n;
 
 void error(const char *msg)
 {
@@ -13,13 +16,20 @@ void error(const char *msg)
 	exit(0);
 }
 
+void interrupt_handler(int sig)
+{
+    close(sockfd);
+    exit(0);
+}
+
 int main(int argc, char *argv[])
 {
-	int sockfd, portno, n;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
 
 	char buffer[256];
+
+    signal(SIGINT, interrupt_handler);
 
 	if (argc < 3) 
 	{
