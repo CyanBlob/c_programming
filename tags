@@ -1,0 +1,15 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+error	sockets/client.c	/^void error(const char *msg)$/;"	f
+error	sockets/server.c	/^void error(const char *msg)$/;"	f
+main	c_programming_kr/getchar.c	/^int main()$/;"	f
+main	c_programming_kr/hello_world.c	/^void main()$/;"	f
+main	c_programming_kr/remove_extra_spaces.c	/^int main()$/;"	f
+main	c_programming_kr/temp_converter.c	/^void main()$/;"	f
+main	c_programming_kr/whitespace_counter.c	/^int main()$/;"	f
+main	sockets/client.c	/^int main(int argc, char *argv[])$/;"	f
+main	sockets/server.c	/^int main(int argc, char *argv[])$/;"	f
